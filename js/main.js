@@ -1,24 +1,45 @@
 //pseudocode - order of attack
 
-
-//D3 region bar chart, see malria map can probably mostly copy
-//wtf is the deal with my popups
-
+//move popups to corner like leafleft example
+//Dymanically Updating Legend
 //different color scale for each region corresponding with their outset map color???
 
 
+//BAR CHART INSTRUCTIONS
+//MANAGE YSCALE BY MAX OF CURRENT YEAR
+//TRY TO MOVE ALL BAR ATTRIBUTES INSIDE ONE FUNCTION
+//MIGHT BE ABLE TO MAKE WHOLE CHART LARGER
+//SLIDING BY YEAR COULD BE TRICKY
+
 //self calling global function
 (function(){
-  var year = 1991;
+  //global vars that i need to not be global before i turn this in
+  var year = 1990;
   var region = "All";
-
   //the current indicator
   var current;
+
+  //constants
+  const width = window.innerWidth * 0.29,
+        height = window.innerHeight * 0.33,
+        leftPadding = 40,
+        rightPadding = 2,
+        topBottomPadding = 5,
+        chartInnerWidth = width - leftPadding - rightPadding,
+        chartInnerHeight = height - topBottomPadding * 2,
+        translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
+
+        let yScale = d3.scaleLinear()
+        .range([height,0]);
+        let yAxis = d3.axisLeft(yScale);
+
+
   //create leaflet map
   function createMap(error, countries, mdg){
     //initialize map, set coordniates and zoom
     //value of current indicator
     var indicator = $("#indicators").val();
+
 
 
     current = mdg.filter(country => country.SeriesCode === indicator);
@@ -47,6 +68,7 @@
       Eastern_Asia: [],
       SouthEastern_Asia: []
     }
+
     var copyRegions = JSON.parse(JSON.stringify(regions));
 
     //join data
@@ -71,8 +93,9 @@
       Central_Asia, Southern_Asia, Western_Asia, Oceania, Eastern_Asia, Southern_Asia, SouthEastern_Asia};
 
       updateChoropleth(myMap, current);
-      createSequenceControls(myMap, All);
+      createSequenceControls(myMap,layers);
       sideMap(myMap, layers, World, current);
+      setChart(myMap,layers);
       indicators(layers, mdg, copyWorld, copyRegions, myMap);
     };
 
@@ -85,6 +108,84 @@
         regions["All"].push(countries[country]);
       };
       return regions;
+    };
+
+    function filterRegions(map){
+      let attributes =[];
+      map.eachLayer(function(layer){
+        if(layer.feature){
+         regionCountries.push(layer.feature.properties.CountryCode);
+         //console.log(layer.feature.properties);
+        }
+
+      })
+    }
+
+    //function to initialize D3 bar chart
+    function setChart(map, layers){
+      let curReg = layers[region];
+      let data = []
+      curReg.eachLayer(function(layer){
+        data.push(layer.feature.properties);
+      })
+      console.log(data);
+      console.log(current);
+
+      let max = d3.max(data, (d) => +d[year]);
+      yScale.domain([0, max]);
+
+      let filtered = data.filter(d=> +d[year]>0);
+
+      var colorScale = makeColorScale(data);
+      //create svg element to hold the bar chart
+      const chart = d3.select("#regionChart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("class", "chart");
+
+      //add axis to chart
+      var axis = chart.append("g")
+      .attr("class", "axis")
+      .attr("transform", translate)
+      .call(yAxis);
+
+      //set bars
+    //move into update chart?
+      var bars = chart.selectAll(".bars")
+      .data(filtered)
+      .enter()
+      //.filter(d => isFinite(d[year]))
+      .append("rect")
+      .sort((a, b)=> b[year]-a[year]);
+
+    updateChart(bars, filtered.length, colorScale);
+    };
+
+    function choropleth(props, colorScale){
+      //make sure attribute value is a number
+      let val = parseFloat(props[year]);
+      //if attribute value exists, assign a color; otherwise assign gray
+      if (typeof val == 'number' && !isNaN(val)){
+        return colorScale(val);
+      } else {
+        return "#CCC";
+      };
+    };
+    function updateChart(bars, n, colorScale){
+      //position bars
+      bars.attr("x", (d, i) => i * (chartInnerWidth / n)+ leftPadding)
+      .attr("height", d => height - yScale(parseFloat(d[year])))
+      .attr("y", d => yScale(parseFloat(d[year])) +topBottomPadding)
+      .attr("class", d =>  "bar " +"co"+ d.CountryCode)
+      .attr("width", chartInnerWidth / n)
+      .style('fill', d => choropleth(d, colorScale));
+      //set y axis
+      d3.selectAll("g.axis")
+      .call(yAxis);
+      //change text of title
+      // d3.selectAll(".chartTitle")
+      // .text(attrFull[expressed]);
     };
 
     //ceate the side map for selecting regions
@@ -101,10 +202,6 @@
         Eastern_Asia: ["#fef0d9", "#fdcc8a", "#fc8d59", "#e34a33", "#b30000"],
         SouthEastern_Asia: ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"]
       };
-
-      //map dimensions
-      const width = window.innerWidth * 0.29;
-      const height = window.innerHeight *0.33;
 
       //map container
       const map = d3.select("#regionSelector")
@@ -163,6 +260,9 @@
         countries.addTo(map);
         //update the colors
         updateChoropleth(map, current);
+        var elem = document.querySelector('.chart');
+        elem.parentNode.removeChild(elem);
+        setChart(map, layers);
 
       };
       //function to zoom to region when clicked in side map
@@ -185,6 +285,9 @@
         ]);
         //update map colors
         updateChoropleth(map, current);
+        var elem = document.querySelector('.chart');
+        elem.parentNode.removeChild(elem);
+        setChart(map, layers);
       };
 
       //style the choropleth map
@@ -238,6 +341,7 @@
             };
           };
         };
+
         return countries;
       };
 
@@ -388,7 +492,7 @@
         });
       }
       //Create new sequence controls within map   //this is only looking at initial data
-      function createSequenceControls(map, layer){
+      function createSequenceControls(map, layers){
 
         let SequenceControl = L.control({ position: 'bottomleft'} );
         SequenceControl.onAdd = function(map) {
@@ -398,7 +502,7 @@
           let stamp = L.DomUtil.create('div', 'timestamp-container');
           //create slider and buttons to progress time, add to container
           let slider = L.DomUtil.create("input", "range-slider");
-          
+
           $(container).append(stamp).append(slider);
           //stop the map from being dragged aroundwhen you interact with the slider
           L.DomEvent.on(container, 'mousedown touchstart touchmove dblclick pointerdown', function(e) {
@@ -410,6 +514,9 @@
           .attr({'type':'range', 'max': 2015, 'min': 1990, 'step': 1,'value': 1990})
           .on('input change', function() {
             year = $(this).val();
+            var elem = document.querySelector('.chart');
+            elem.parentNode.removeChild(elem);
+            setChart(map,layers);
             updateChoropleth(map, current);
           });
           return container;

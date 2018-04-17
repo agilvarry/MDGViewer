@@ -1,15 +1,13 @@
 //pseudocode - order of attack
 
 //move popups to corner like leafleft example
-//Dymanically Updating Legend
+//Dymanically Updating Legend????
 //different color scale for each region corresponding with their outset map color???
+//scales for region and bar charts don't match up currently
 
+//be rid of global variables when all is said and done.
 
-//BAR CHART INSTRUCTIONS
-//MANAGE YSCALE BY MAX OF CURRENT YEAR
-//TRY TO MOVE ALL BAR ATTRIBUTES INSIDE ONE FUNCTION
-//MIGHT BE ABLE TO MAKE WHOLE CHART LARGER
-//SLIDING BY YEAR COULD BE TRICKY
+//I think I can get rid of current by how I'm managing the side bar chart
 
 //self calling global function
 (function(){
@@ -21,26 +19,127 @@
 
   //constants
   const width = window.innerWidth * 0.29,
-        height = window.innerHeight * 0.33,
-        leftPadding = 40,
-        rightPadding = 2,
-        topBottomPadding = 5,
-        chartInnerWidth = width - leftPadding - rightPadding,
-        chartInnerHeight = height - topBottomPadding * 2,
-        translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
+  height = window.innerHeight * 0.33,
+  leftPadding = 40,
+  rightPadding = 2,
+  topBottomPadding = 5,
+  chartInnerWidth = width - leftPadding - rightPadding,
+  chartInnerHeight = height - topBottomPadding * 2,
+  translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
 
-        let yScale = d3.scaleLinear()
-        .range([height,0]);
-        let yAxis = d3.axisLeft(yScale);
+  //function to initialize D3 bar chart
+  function setChart(map, layers){
+    let yScale = d3.scaleLinear().range([height,0]);
+    let yAxis = d3.axisLeft(yScale);
+    let curReg = layers[region];
+    let data = []
+    curReg.eachLayer(function(layer){
+      data.push(layer.feature.properties);
+    })
 
+    let max = d3.max(data, (d) => +d[year]);
+    yScale.domain([0, max]);
+
+    let filtered = data.filter(d=> +d[year]>0);
+
+    var colorScale = makeColorScale(data);
+    //create svg element to hold the bar chart
+    const chart = d3.select("#regionChart")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("class", "chart");
+
+    //add axis to chart
+    var axis = chart.append("g")
+    .attr("class", "axis")
+    .attr("transform", translate)
+    .call(yAxis);
+
+    //set bars
+    var bars = chart.selectAll(".bars")
+    .data(filtered)
+    .enter()
+    .append("rect")
+    .sort((a, b)=> b[year]-a[year]);
+
+    bars.attr("x", (d, i) => i * (chartInnerWidth / filtered.length)+ leftPadding)
+    .attr("height", d => height - yScale(parseFloat(d[year])))
+    .attr("y", d => yScale(parseFloat(d[year])) +topBottomPadding)
+    .attr("class", d =>  "bar " +"co"+ d.CountryCode)
+    .attr("width", chartInnerWidth / filtered.length)
+    .style('fill', d => choropleth(d, colorScale));
+    //set y axis
+    d3.selectAll("g.axis")
+    .call(yAxis);
+  };
+
+  //make popup content, want to change this so it's stationay in corner
+  function createChart(props){
+
+    let attributes = processData(props);
+
+    let max = d3.max(attributes, d=>d);
+    let min = d3.min(attributes, d=>d);
+
+    var xScale = d3.scaleTime().range([0, width-40]).domain([1990, 2015]);
+    let yScale = d3.scaleLinear().range([height,0]).domain([(min - (min/5)), max]);
+
+    var xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(5);
+    var yAxis = d3.axisLeft(yScale);
+
+    let svg = d3.select('.info')
+    .select('svg')
+    .attr("width", width)
+    .attr("height", height)
+    .attr("class", "chart")
+
+      //add axis to chart
+    var yAxis = svg.append('g')
+    .attr('class', 'yAxis')
+    .attr("transform", "translate(40, 0)")
+    .call(yAxis);
+
+    var xAxis =  svg.append('g')
+    .attr("class", "xAxis")
+    .attr("transform", `translate(${leftPadding}, ${height})`)
+    .call(xAxis);
+
+
+    //set bars
+    var bars = svg.selectAll('.infoBars')
+    .data(attributes)
+    .enter()
+    .append('rect');
+  // var dots =  svg.selectAll(".dot")
+  //   .data(attributes)
+  //   .enter()
+  //   .append("circle");
+
+
+
+    bars.attr("x", (d, i) => i * (chartInnerWidth / attributes.length)+ leftPadding)
+    .attr("height", d => height - yScale(parseFloat(d)))
+    .attr("y", d => yScale(parseFloat(d)) + topBottomPadding)
+    .attr("width", chartInnerWidth / attributes.length)
+    .attr("transform", "translate(1,-5)")
+    .style('fill', "blue");
+
+    // dots.attr("cx", d => xScale(parseFloat(d)))
+    // .attr("class", "dot")
+    // .attr("r",6)
+    // .attr("cy", d=> yScale(parseFloat(d)))
+    // .style('fill', "blue");
+
+
+
+  };
 
   //create leaflet map
   function createMap(error, countries, mdg){
     //initialize map, set coordniates and zoom
     //value of current indicator
     var indicator = $("#indicators").val();
-
-
 
     current = mdg.filter(country => country.SeriesCode === indicator);
 
@@ -77,7 +176,7 @@
     //split into regions
     makeRegions(World, regions);
     //make geojson objects for leaflet, i can probably refacor along with changedata portion
-    var  Developed = L.geoJson(regions['Developed'], {style: style,onEachFeature: onEachFeature}),
+    var  Developed = L.geoJson(regions['Developed'], {style: style, onEachFeature: onEachFeature}),
     Latin_America_Caribbean = L.geoJson(regions['Latin_America_Caribbean'], {style: style,onEachFeature: onEachFeature}),
     Northern_Africa = L.geoJson(regions['Northern_Africa'],{style: style,onEachFeature: onEachFeature}),
     SubSaharan_Africa = L.geoJson(regions['SubSaharan_Africa'],{style: style,onEachFeature: onEachFeature}),
@@ -96,6 +195,7 @@
       createSequenceControls(myMap,layers);
       sideMap(myMap, layers, World, current);
       setChart(myMap,layers);
+      setInfo(myMap);
       indicators(layers, mdg, copyWorld, copyRegions, myMap);
     };
 
@@ -114,53 +214,10 @@
       let attributes =[];
       map.eachLayer(function(layer){
         if(layer.feature){
-         regionCountries.push(layer.feature.properties.CountryCode);
-         //console.log(layer.feature.properties);
+          regionCountries.push(layer.feature.properties.CountryCode);
         }
-
       })
     }
-
-    //function to initialize D3 bar chart
-    function setChart(map, layers){
-      let curReg = layers[region];
-      let data = []
-      curReg.eachLayer(function(layer){
-        data.push(layer.feature.properties);
-      })
-      console.log(data);
-      console.log(current);
-
-      let max = d3.max(data, (d) => +d[year]);
-      yScale.domain([0, max]);
-
-      let filtered = data.filter(d=> +d[year]>0);
-
-      var colorScale = makeColorScale(data);
-      //create svg element to hold the bar chart
-      const chart = d3.select("#regionChart")
-      .append("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("class", "chart");
-
-      //add axis to chart
-      var axis = chart.append("g")
-      .attr("class", "axis")
-      .attr("transform", translate)
-      .call(yAxis);
-
-      //set bars
-    //move into update chart?
-      var bars = chart.selectAll(".bars")
-      .data(filtered)
-      .enter()
-      //.filter(d => isFinite(d[year]))
-      .append("rect")
-      .sort((a, b)=> b[year]-a[year]);
-
-    updateChart(bars, filtered.length, colorScale);
-    };
 
     function choropleth(props, colorScale){
       //make sure attribute value is a number
@@ -172,21 +229,7 @@
         return "#CCC";
       };
     };
-    function updateChart(bars, n, colorScale){
-      //position bars
-      bars.attr("x", (d, i) => i * (chartInnerWidth / n)+ leftPadding)
-      .attr("height", d => height - yScale(parseFloat(d[year])))
-      .attr("y", d => yScale(parseFloat(d[year])) +topBottomPadding)
-      .attr("class", d =>  "bar " +"co"+ d.CountryCode)
-      .attr("width", chartInnerWidth / n)
-      .style('fill', d => choropleth(d, colorScale));
-      //set y axis
-      d3.selectAll("g.axis")
-      .call(yAxis);
-      //change text of title
-      // d3.selectAll(".chartTitle")
-      // .text(attrFull[expressed]);
-    };
+
 
     //ceate the side map for selecting regions
     function sideMap(mapView, layers, geojson, current){
@@ -355,8 +398,6 @@
             attributes.push(parseInt(data[attribute]));
           };
         };
-        let max = d3.max(attributes, d=>d);
-        let min = d3.min(attributes, d=>d);
 
         return attributes;
       };
@@ -408,126 +449,76 @@
         })
       };
 
+      function updateInfo(props){
+        var infoDiv = document.querySelector('.info');
 
-      //make popup content, want to change this so it's stationay in corner
-      function createPopup(props, layer){
-        //title text
-        let titleContent = "<p><b>Country:</b> " + props.NAME_LONG + props.Series + ": "+ props[year]+ "</p>";
-
-        this.div = $('<div class="popChart" style="width: 300px; height:200px;">'+titleContent+'<svg/></div>')[0];
-
-        let popup = L.popup().setContent(this.div);
-        layer.bindPopup(popup, {
-          offset: new L.Point(0,-7)
-        });
-        let attributes = processData(props);
-
-        let max = d3.max(attributes);
-        let min = d3.min(attributes);
-        let scaledAttributes = [];
-        let margin = {top: 18, right: 30, bottom: 40, left: 55},
-        width = 250,
-        height = 200 - margin.top - margin.bottom
-        barWidth = width / attributes.length;
-
-        let linearScale = d3.scaleLinear()
-        .domain([min, max])
-        .range([(min/max) * height, height]);
-        //apply scale to GPD data and sctore in array
-        scaledAttributes = attributes.map(function(item) {
-          return linearScale(item);
-        });
-
-        let x = d3.scaleLinear().range([0, width]).domain([1990, 2015]);
-        let y = d3.scaleLinear().range([height, (min/max) * height]).domain([min, max]);
-
-        var xAxis = d3.axisBottom(x).tickFormat(d3.format("d")).ticks(5);
-        var yAxis = d3.axisLeft(y);
-
-        let svg = d3.select(this.div).select("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .attr("class", "popGraph")
-        .append("g")
-        .text("hello")
-        .style('fill', 'green')
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        svg.append('g')
-        .attr('class', 'yAxis')
-        .attr("transform", "translate(0,"+ (-margin.top)+")")
-        .call(yAxis);
-
-        svg.append('g')
-        .attr("class", "xAxis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis);
-
-        let bars = svg.selectAll('rect')
-        .data(attributes)
-        .enter()
-        .append('rect');
-
-        bars.attr('class', 'bar')
-        .attr('x', function(d, i) {
-          return i * barWidth;
-        });
-
-        //set bar height
-        bars.attr('y', function(d, i) {
-          return height - d;
-        }) .attr('width', barWidth)
-        .attr('height', function(d) {
-          return d;
-        });
-      };
-
-      function onEachFeature(feature, layer) {
-        layer.on({
-          mouseover: function(e){
-            createPopup(layer.feature.properties, layer);
-          },
-          mouseout: function(e){
-          }
-        });
-      }
-      //Create new sequence controls within map   //this is only looking at initial data
-      function createSequenceControls(map, layers){
-
-        let SequenceControl = L.control({ position: 'bottomleft'} );
-        SequenceControl.onAdd = function(map) {
-          // create the control container with a particular class name
-          let container = L.DomUtil.create('div', 'sequence-container');
-          //create timestamp container
-          let stamp = L.DomUtil.create('div', 'timestamp-container');
-          //create slider and buttons to progress time, add to container
-          let slider = L.DomUtil.create("input", "range-slider");
-
-          $(container).append(stamp).append(slider);
-          //stop the map from being dragged aroundwhen you interact with the slider
-          L.DomEvent.on(container, 'mousedown touchstart touchmove dblclick pointerdown', function(e) {
-            L.DomEvent.stopPropagation(e);
-          });
-
-          $(slider)
-          //set attributes
-          .attr({'type':'range', 'max': 2015, 'min': 1990, 'step': 1,'value': 1990})
-          .on('input change', function() {
-            year = $(this).val();
-            var elem = document.querySelector('.chart');
-            elem.parentNode.removeChild(elem);
-            setChart(map,layers);
-            updateChoropleth(map, current);
-          });
-          return container;
+        infoDiv.innerHTML = '<h4>Attributes</h4>' +  (props ?
+          '<b>'+ props.Series+ '<br/>'+ props.NAME_LONG + '</b><br /> <svg/>'
+          : 'Hover over a state');
+          if(props){
+            createChart(props);
+          };
         }
-        SequenceControl.addTo(map);
-      };
+        function setInfo(map){
 
-      //pull in initial data and then create the map
-      d3.queue()
-      .defer(d3.json, "doc/MDGCountries.topojson") //Afria spatial data
-      .defer(d3.csv, "doc/MDG.csv") //master data
-      .await(createMap);
+          let info = L.control({position: 'bottomright'});
+          info.onAdd = function(map){
+            let infoDiv = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+            return infoDiv;
+          }
 
-    })();
+          info.addTo(map);
+          updateInfo();
+
+        }
+
+        function onEachFeature(feature, layer) {
+          layer.on({
+            mouseover: function(e){
+              updateInfo(layer.feature.properties, layer);
+            },
+            mouseout: function(e){
+              updateInfo();
+            }
+          });
+        }
+        //Create new sequence controls within map   //this is only looking at initial data
+        function createSequenceControls(map, layers){
+
+          let SequenceControl = L.control({ position: 'bottomleft'} );
+          SequenceControl.onAdd = function(map) {
+            // create the control container with a particular class name
+            let container = L.DomUtil.create('div', 'sequence-container');
+            //create timestamp container
+            let stamp = L.DomUtil.create('div', 'timestamp-container');
+            //create slider and buttons to progress time, add to container
+            let slider = L.DomUtil.create("input", "range-slider");
+
+            $(container).append(stamp).append(slider);
+            //stop the map from being dragged aroundwhen you interact with the slider
+            L.DomEvent.on(container, 'mousedown touchstart touchmove dblclick pointerdown', function(e) {
+              L.DomEvent.stopPropagation(e);
+            });
+
+            $(slider)
+            //set attributes
+            .attr({'type':'range', 'max': 2015, 'min': 1990, 'step': 1,'value': 1990})
+            .on('input change', function() {
+              year = $(this).val();
+              var elem = document.querySelector('.chart');
+              elem.parentNode.removeChild(elem);
+              setChart(map,layers);
+              updateChoropleth(map, current);
+            });
+            return container;
+          }
+          SequenceControl.addTo(map);
+        };
+
+        //pull in initial data and then create the map
+        d3.queue()
+        .defer(d3.json, "doc/MDGCountries.topojson") //Afria spatial data
+        .defer(d3.csv, "doc/MDG.csv") //master data
+        .await(createMap);
+
+      })();

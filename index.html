@@ -18,20 +18,21 @@
   </nav>
   <main>
     <div class="sidenav">
-      <select name="targets" id="targets">
-        <option value="t5A">Reduce Maternal Mortality Rates</option>
-        <option value="t5B">Access to Reproductive Healthcare</option>
-      </select>
-      <select id="indicators" name="indicators">
-        <option value="553">Maternal mortality ratio per 100,000 live births</option>
-        <option value="570">% of births attended by skilled health personnel</option>
-      </select>
+      <div class="selectors">
+        <select name="targets" id="targets">
+          <option value="t5A">Reduce Maternal Mortality Rates</option>
+          <option value="t5B">Access to Reproductive Healthcare</option>
+        </select>
+        <select id="indicators" name="indicators">
+          <option value="553">Maternal mortality ratio per 100,000 live births</option>
+          <option value="570">% of births attended by skilled health personnel</option>
+        </select>
+      </div>
+      <div>
       <button class="All" type="button">All Countries</button>
       <div id="regionSelector"></div>
+    </div>
       <div id="regionChart"></div>
-
-
-
     </div>
     <div id="map"></div>
   </main>

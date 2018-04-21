@@ -2,16 +2,14 @@
 
 
 //TODOs
-//obvious text placement and sizings
-//Dymanically Updating Legend???? - consult with Ian
-//fix popup when country has no dataset
-//create popup for side bars - maybe(probably) have highlight with leaflet map
+//fix side bar flicker - perhaps change back to popup? or set box size to never change
+//titlebar
+//year label
+//set zooming so it's more accurate
+
+//make popup into scatterplot with regression line??
 //different color scale for each region?
 
-//make popup into scatterplot with regression line
-//fix side bar flicker
-//set zooming so it's more accurate
-//nan error on hover
 //refactor choropleth functions
 //recactor chart creations
 //general refactoring
@@ -34,6 +32,48 @@
   chartInnerHeight = height - topBottomPadding * 2,
   translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
 
+  function moveLabel(){
+    //get width of label
+    var labelWidth = d3.select(".infolabel")
+    .node()
+    .getBoundingClientRect()
+    .width;
+    console.log(labelWidth);
+    //use coordinates of mousemove event to set label coordinates
+    var x1 = d3.event.clientX + 10,
+    y1 = d3.event.clientY - 75,
+    x2 = d3.event.clientX - labelWidth - 10,
+    y2 = d3.event.clientY + 25;
+    //horizontal label coordinate, testing for overflow
+    var x = d3.event.clientX > window.innerWidth - labelWidth - 20 ? x2 : x1;
+    //vertical label coordinate, testing for overflow
+    var y = d3.event.clientY < 75 ? y2 : y1;
+    d3.select(".infolabel")
+    .style("left", x + "px")
+    .style("top", y + "px");
+  };
+
+  //function to create dynamic label
+  function setLabel(props){
+    //label content
+    let labelAttribute = "<h1>" + props[year] +
+    "</h1><b>" + props['Country'] + "</b>";
+
+    //create info label div
+    var infolabel = d3.select("body")
+    .append("div")
+    .attr("class", "infolabel")
+    .attr("id", "co" + props.Code + "_label")
+    .html(labelAttribute);
+    //set country name to popup
+    // var countryName = infolabel.append("div")
+    // .attr("class", "labelname")
+    // .html(props.Country);
+  };
+  function removeLabel(){
+
+  }
+
   //function to initialize D3 bar chart
   function setChart(map, layers){
     let yScale = d3.scaleLinear().range([height,0]);
@@ -45,23 +85,14 @@
     yScale.domain([0, max]);
 
     let filtered = data.filter(d=> +d[year]>0);
-    console.log(filtered);
     var colorScale = makeColorScale(data);
+
     //create svg element to hold the bar chart
-
-    // Define the div for the tooltip
-
-
     var chart = d3.select("#regionChart")
     .append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("class", "chart");
-
-    var tooltip = d3.select('body').append('div')
-   .attr('id', 'tooltip')
-   .style('position', 'absolute')
-   .style('opacity', 0)
 
     //add axis to chart
     var axis = chart.append("g")
@@ -84,37 +115,18 @@
     .attr("class", d =>  "bar " +"co"+ d.CountryCode)
     .attr("width", chartInnerWidth / filtered.length)
     .style('fill', d => choropleth(d, colorScale))
-    .on("mouseover", function(d) {
-      let mouse = d3.mouse(this);
-      let country = d3.select(this).attr('country');
-      let value = d3.select(this).attr('value');
-      console.
-      tooltip
-      .style('left', `${mouse[0] + 1}px`)
-        .style('top', `${mouse[1] - 1}px`)
-        .html(
-          `<span class="tooltip-title">Country: </span>${country}<br>
-          <span class="tooltip-title">val: </span>${value}%`
-        )
-        .transition()
-        .duration(200)
-        .style('opacity', .9)
+    .on("mouseover", d => setLabel(d))
+    .on("mouseout", (d) => d3.select(".infolabel").remove())
+    .on("mousemove", moveLabel);
 
-    })
-    .on('mouseout', (d) => {
-   tooltip.transition()
-     .duration(200)
-     .style('opacity', 0)
- });
     //set y axis
     d3.selectAll("g.axis")
     .call(yAxis);
   };
 
   //make popup content, want to change this so it's stationay in corner
-  function createChart(props){
+  function createChart(attributes){
 
-    let attributes = processData(props);
     let max = d3.max(attributes, d=>d);
     let min = d3.min(attributes, d=>d);
     var xScale = d3.scaleTime().range([0, width-40]).domain([1990, 2015]);
@@ -161,6 +173,7 @@
     // .attr("r",6)
     // .attr("cy", d=> yScale(parseFloat(d)))
     // .style('fill', "blue");
+
   };
 
   //create leaflet map
@@ -477,16 +490,25 @@
       };
       //update info side popup
       function updateInfo(props){
+        let attributes = processData(props);
+        let notEmpty = false;
+        for(let i in attributes){
+          if (isFinite(attributes[i])){
+            notEmpty = true;
+          };
+        };
+
         var infoDiv = document.querySelector('.info');
 
-        infoDiv.innerHTML = (props ?
-          `<b>${props.NAME_LONG}<br/>${props.Series}</b><br/><svg/>`
-          :'Hover over a state for data');
-
-          if(props){
-            createChart(props);
-          };
+        if(!props){
+          infoDiv.innerHTML = 'Hover over a state for data';
+        }  else if(!notEmpty || !isFinite(props.SeriesCode)){
+          infoDiv.innerHTML = `<b>${props.NAME_LONG}</b><br/>No data available`;
+        } else if (isFinite(props.SeriesCode)){
+          infoDiv.innerHTML = `<b>${props.NAME_LONG}<br/>${props.Series}</b><br/><svg/>`;
+          createChart(attributes);
         }
+      };
 
         function setInfo(map){
           //set up control container in bottom right for popups

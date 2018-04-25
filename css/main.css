@@ -123,6 +123,19 @@ height: 8%;
   height: 100%;
   z-index:1;
 }
+
+.sequence-container{
+  background-color: #fff;
+  padding: 0 10px;
+  line-height: 25px;
+  text-align: left;
+  border: 2px solid rgba(0,0,0,0.2);
+  background-clip: padding-box;
+  box-shadow: none;
+  border-radius: 5px;
+  opacity: 0.9;
+}
+
 .sidenav {
     display: flex;
     flex-direction: column;

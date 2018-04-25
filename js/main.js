@@ -2,18 +2,23 @@
 
 
 //TODOs
-//fix side bar flicker - perhaps change back to popup? or set box size to never change
-//titlebar
-//year label
+//STYLING
+
 //set zooming so it's more accurate
+//adjust default zoom
+
+//several bars for each country error????
+//fix side barchart when it's empty & set title for barchart
+
 
 //make popup into scatterplot with regression line??
 //different color scale for each region?
 
+
 //refactor choropleth functions
 //recactor chart creations
 //general refactoring
-//be rid of global variables when all is said and done.
+//be rid of global variables when all is said and done, please
 
 
 //self calling global function
@@ -21,6 +26,8 @@
   //global vars that i need to not be global before i turn this in
   var year = 1990;
   var region = "All";
+
+
 
   //constants
   const width = window.innerWidth * 0.29,
@@ -32,155 +39,38 @@
   chartInnerHeight = height - topBottomPadding * 2,
   translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
 
-  function moveLabel(){
-    //get width of label
-    var labelWidth = d3.select(".infolabel")
-    .node()
-    .getBoundingClientRect()
-    .width;
-    console.log(labelWidth);
-    //use coordinates of mousemove event to set label coordinates
-    var x1 = d3.event.clientX + 10,
-    y1 = d3.event.clientY - 75,
-    x2 = d3.event.clientX - labelWidth - 10,
-    y2 = d3.event.clientY + 25;
-    //horizontal label coordinate, testing for overflow
-    var x = d3.event.clientX > window.innerWidth - labelWidth - 20 ? x2 : x1;
-    //vertical label coordinate, testing for overflow
-    var y = d3.event.clientY < 75 ? y2 : y1;
-    d3.select(".infolabel")
-    .style("left", x + "px")
-    .style("top", y + "px");
+
+  const titleInfo = {
+    t5A : "Reduce Maternal Mortality Rates",
+    t5B : "Access to Reproductive Healthcare",
+    553 : "Maternal mortality ratio per 100,000 live births",
+    730 : "Contraceptive use among married women 15-49 years",
+    570 : "% of births attended by skilled health personnel",
+    761 : "Adolescent birth rate, per 1,000 women",
+    762 : "% of antenatal care coverage, at least one visit"
   };
 
-  //function to create dynamic label
-  function setLabel(props){
-    //label content
-    let labelAttribute = "<h1>" + props[year] +
-    "</h1><b>" + props['Country'] + "</b>";
-
-    //create info label div
-    var infolabel = d3.select("body")
-    .append("div")
-    .attr("class", "infolabel")
-    .attr("id", "co" + props.Code + "_label")
-    .html(labelAttribute);
-    //set country name to popup
-    // var countryName = infolabel.append("div")
-    // .attr("class", "labelname")
-    // .html(props.Country);
-  };
-  function removeLabel(){
+  const regionNames ={
+    All: "All UN Nations",
+    Developed: '"Developed" Countries',
+    Latin_America_Caribbean: "Latin America and the Caribbean",
+    Northern_Africa: "Northern Afirca",
+    SubSaharan_Africa: "Sub-Saharan Africa",
+    Central_Asia: "Caucasus and Central Asia",
+    Southern_Asia: "Southern Asia",
+    Western_Asia: "Western Asia",
+    Oceania: "Oceania",
+    Eastern_Asia: "Eastern Asia",
+    SouthEastern_Asia: "South-Eastern Asia"
 
   }
-
-  //function to initialize D3 bar chart
-  function setChart(map, layers){
-    let yScale = d3.scaleLinear().range([height,0]);
-    let yAxis = d3.axisLeft(yScale);
-    //get current regions
-    let data = filterRegions(map);
-
-    let max = d3.max(data, (d) => +d[year]);
-    yScale.domain([0, max]);
-
-    let filtered = data.filter(d=> +d[year]>0);
-    var colorScale = makeColorScale(data);
-
-    //create svg element to hold the bar chart
-    var chart = d3.select("#regionChart")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("class", "chart");
-
-    //add axis to chart
-    var axis = chart.append("g")
-    .attr("class", "axis")
-    .attr("transform", translate)
-    .call(yAxis);
-
-    //set bars
-    var bars = chart.selectAll(".bars")
-    .data(filtered)
-    .enter()
-    .append("rect")
-    .sort((a, b)=> b[year]-a[year]);
-
-    bars.attr("x", (d, i) => i * (chartInnerWidth / filtered.length)+ leftPadding)
-    .attr("height", d => height - yScale(parseFloat(d[year])))
-    .attr("y", d => yScale(parseFloat(d[year])) +topBottomPadding)
-    .attr("country", d=> d['Country'])
-    .attr("value", d=>d[year])
-    .attr("class", d =>  "bar " +"co"+ d.CountryCode)
-    .attr("width", chartInnerWidth / filtered.length)
-    .style('fill', d => choropleth(d, colorScale))
-    .on("mouseover", d => setLabel(d))
-    .on("mouseout", (d) => d3.select(".infolabel").remove())
-    .on("mousemove", moveLabel);
-
-    //set y axis
-    d3.selectAll("g.axis")
-    .call(yAxis);
-  };
-
-  //make popup content, want to change this so it's stationay in corner
-  function createChart(attributes){
-
-    let max = d3.max(attributes, d=>d);
-    let min = d3.min(attributes, d=>d);
-    var xScale = d3.scaleTime().range([0, width-40]).domain([1990, 2015]);
-    let yScale = d3.scaleLinear().range([height,0]).domain([(min - (min/5)), max]);
-    var xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(5);
-    var yAxis = d3.axisLeft(yScale);
-
-    let svg = d3.select('.info')
-    .select('svg')
-    .attr("width", width)
-    .attr("height", height)
-    .attr("class", "chart")
-
-    //add axis to chart
-    var yAxis = svg.append('g')
-    .attr('class', 'yAxis')
-    .attr("transform", "translate(40, 0)")
-    .call(yAxis);
-
-    var xAxis =  svg.append('g')
-    .attr("class", "xAxis")
-    .attr("transform", `translate(${leftPadding}, ${height})`)
-    .call(xAxis);
-
-    //set bars
-    var bars = svg.selectAll('.infoBars')
-    .data(attributes)
-    .enter()
-    .append('rect');
-    // var dots =  svg.selectAll(".dot")
-    //   .data(attributes)
-    //   .enter()
-    //   .append("circle");
-
-    bars.attr("x", (d, i) => i * (chartInnerWidth / attributes.length)+ leftPadding)
-    .attr("height", d => height - yScale(parseFloat(d)))
-    .attr("y", d => yScale(parseFloat(d)) + topBottomPadding)
-    .attr("width", chartInnerWidth / attributes.length)
-    .attr("transform", "translate(1,-5)")
-    .style('fill', "blue");
-
-    // dots.attr("cx", d => xScale(parseFloat(d)))
-    // .attr("class", "dot")
-    // .attr("r",6)
-    // .attr("cy", d=> yScale(parseFloat(d)))
-    // .style('fill', "blue");
-
-  };
 
   //create leaflet map
   function createMap(error, countries, mdg){
     //initialize map, set coordniates and zoom
     //value of current indicator
-    var indicator = $("#indicators").val();
+    let indicator = $("#indicators").val();
+
     let current = mdg.filter(country => country.SeriesCode === indicator);
 
     let myMap = L.map('map').setView([51.1657, 10.4515], 4);
@@ -236,6 +126,141 @@
       setInfo(myMap);
       indicators(layers, mdg, copyWorld, copyRegions, myMap);
     };
+
+  function moveLabel(){
+    //get width of label
+    var labelWidth = d3.select(".infolabel")
+    .node()
+    .getBoundingClientRect()
+    .width;
+    console.log(labelWidth);
+    //use coordinates of mousemove event to set label coordinates
+    var x1 = d3.event.clientX + 10,
+    y1 = d3.event.clientY - 75,
+    x2 = d3.event.clientX - labelWidth - 10,
+    y2 = d3.event.clientY + 25;
+    //horizontal label coordinate, testing for overflow
+    var x = d3.event.clientX > window.innerWidth - labelWidth - 20 ? x2 : x1;
+    //vertical label coordinate, testing for overflow
+    var y = d3.event.clientY < 75 ? y2 : y1;
+    d3.select(".infolabel")
+    .style("left", x + "px")
+    .style("top", y + "px");
+  };
+
+  //function to create dynamic label
+  function setLabel(props){
+    //label content
+    let labelAttribute = "<h1>" + props[year] +
+    "</h1><b>" + props['Country'] + "</b>";
+
+    //create info label div
+    var infolabel = d3.select("body")
+    .append("div")
+    .attr("class", "infolabel")
+    .attr("id", "co" + props.Code + "_label")
+    .html(labelAttribute);
+    //set country name to popup
+    // var countryName = infolabel.append("div")
+    // .attr("class", "labelname")
+    // .html(props.Country);
+  };
+
+  //function to initialize D3 bar chart
+  function setChart(map, layers){
+    let yScale = d3.scaleLinear().range([height,0]);
+    let yAxis = d3.axisLeft(yScale);
+    //get current regions
+    let data = filterRegions(map);
+
+    let max = d3.max(data, (d) => +d[year]);
+    yScale.domain([0, max]);
+
+    let filtered = data.filter(d=> +d[year]>0);
+    var colorScale = makeColorScale(data);
+
+    //create svg element to hold the bar chart
+    var chart = d3.select("#regionChart")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("class", "chart");
+
+    //add axis to chart
+    var axis = chart.append("g")
+    .attr("class", "axis")
+    .attr("transform", translate)
+    .call(yAxis);
+
+    //set bars
+    var bars = chart.selectAll(".bars")
+    .data(filtered)
+    .enter()
+    .append("rect")
+    .sort((a, b)=> b[year]-a[year]);
+
+    bars.attr("x", (d, i) => i * (chartInnerWidth / filtered.length)+ leftPadding)
+    .attr("height", d => height - yScale(parseFloat(d[year])))
+    .attr("y", d => yScale(parseFloat(d[year])) +topBottomPadding)
+    .attr("country", d=> d['Country'])
+    .attr("value", d=>d[year])
+    .attr("class", d =>  "bar " +"co"+ d.CountryCode)
+    .attr("width", chartInnerWidth / filtered.length)
+    .style('fill', d => choropleth(d, colorScale))
+    .on("mouseover", d => setLabel(d))
+    .on("mouseout", (d) => d3.select(".infolabel").remove())
+    .on("mousemove", moveLabel);
+
+    //set y axis
+    d3.selectAll("g.axis")
+    .call(yAxis);
+  };
+
+  //make popup content, want to change this so it's stationay in corner
+  function createChart(attributes){
+    console.log(attributes);
+
+    let max = d3.max(attributes, d=>d);
+    let min = d3.min(attributes, d=>d);
+    var xScale = d3.scaleTime().range([0, width-40]).domain([1990, 2015]);
+    let yScale = d3.scaleLinear().range([height,0]).domain([(min - (min/5)), max]);
+    var xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(5);
+    var yAxis = d3.axisLeft(yScale);
+
+    attributes.forEach(function(item, i) { if (!isFinite(item)) attributes[i] = 0; });
+      console.log(attributes);
+    let svg = d3.select('.info')
+    .select('svg')
+    .attr("width", width)
+    .attr("height", height)
+    .attr("class", "chart")
+
+    //add axis to chart
+    var yAxis = svg.append('g')
+    .attr('class', 'yAxis')
+    .attr("transform", "translate(40, 0)")
+    .call(yAxis);
+
+    var xAxis =  svg.append('g')
+    .attr("class", "xAxis")
+    .attr("transform", `translate(${leftPadding}, ${height})`)
+    .call(xAxis);
+
+    //set bars
+    var bars = svg.selectAll('.infoBars')
+    .data(attributes)
+    .enter()
+    .append('rect');
+
+    bars.attr("x", (d, i) => i * (chartInnerWidth / attributes.length)+ leftPadding)
+    .attr("height", function(d){let val= height - yScale(parseFloat(d));if(val<0){val=0;}return val;}) //checks if yScale is giving negative values when input is 0, if so returns a 0
+    .attr("y", d => yScale(parseFloat(d)) + topBottomPadding)
+    .attr("width", chartInnerWidth / attributes.length)
+    .attr("transform", "translate(1,-5)")
+    .style('fill', "blue");
+  };
+
+
 
     //separate the world into regions
     function makeRegions(countries, regions){
@@ -382,6 +407,7 @@
           [neLat,neLng], [swLat,swLng]
         ]);
         //update map colors
+        $("#regionName").html(regionNames[region]);
         updateChoropleth(map);
         var elem = document.querySelector('.chart');
         elem.parentNode.removeChild(elem);
@@ -456,9 +482,13 @@
 
         return attributes;
       };
-
-
-
+//control text in title bar
+function changeTitle(target, indicator){
+  let currentTarget = d3.select("#CurrentTarget")//.append("text")
+    .text(titleInfo[target]);
+  let currentIndicator =  d3.select("#CurrentIndicator")//.append("text")
+    .text(titleInfo[indicator]);
+};
       //update the indicator selector in the side bar
       function indicators(layers, mdg, world, regions, map){
         var copyRegions = JSON.parse(JSON.stringify(regions));
@@ -472,6 +502,7 @@
         var target = $("#targets").val();
         //value of current indicator
         var indicator = $("#indicators").val()
+        changeTitle(target, indicator);
 
         //updates indicator/target
         $("#targets").change(function () {
@@ -479,13 +510,15 @@
           //update indicator list
           $("#indicators").html(indicatorList[target]);
           indicator = $("#indicators").val()
-          changeData(layers, indicator, mdg, copyWorld, copyRegions, map)
+          changeData(layers, indicator, mdg, copyWorld, copyRegions, map);
+          changeTitle(target, indicator);
         });
 
         //updates indicator
         $("#indicators").change(function(){
           indicator = $(this).val();
-          changeData(layers, indicator, mdg, copyWorld, copyRegions, map)
+          changeData(layers, indicator, mdg, copyWorld, copyRegions, map);
+          changeTitle(target, indicator);
         })
       };
       //update info side popup
@@ -501,11 +534,11 @@
         var infoDiv = document.querySelector('.info');
 
         if(!props){
-          infoDiv.innerHTML = 'Hover over a state for data';
+          infoDiv.innerHTML = 'Click on a country for more information';
         }  else if(!notEmpty || !isFinite(props.SeriesCode)){
           infoDiv.innerHTML = `<b>${props.NAME_LONG}</b><br/>No data available`;
         } else if (isFinite(props.SeriesCode)){
-          infoDiv.innerHTML = `<b>${props.NAME_LONG}<br/>${props.Series}</b><br/><svg/>`;
+          infoDiv.innerHTML = `<b>${props.NAME_LONG}<br/>${props.Series}:</b> ${props[year]}<br/><svg/>`;
           createChart(attributes);
         }
       };
@@ -518,19 +551,22 @@
             return infoDiv;
           }
           info.addTo(map);
+          //removed the popup after it's been added as soon as you move the mouse
+          map.on('mousemove', function(){
+            updateInfo();
+          });
           //updates infomation contained in popup div
           updateInfo();
         }
-        //controls hover over countries
+        //controls click for country popups
         function onEachFeature(feature, layer) {
-          layer.on({
-            mouseover: function(e){
+          layer.on('mousedown', function(){
               updateInfo(layer.feature.properties, layer);
-            },
-            mouseout: function(e){
-              updateInfo();
-            }
-          });
+            });
+            // mousemove: function(e){
+            //   updateInfo();
+            // }
+
         }
         //Create new sequence controls within map   //this is only looking at initial data
         function createSequenceControls(map, layers){
@@ -543,7 +579,7 @@
             let stamp = L.DomUtil.create('div', 'timestamp-container');
             //create slider and buttons to progress time, add to container
             let slider = L.DomUtil.create("input", "range-slider");
-
+            $(stamp).html("<b>Year:</b> " + year);
             $(container).append(stamp).append(slider);
             //stop the map from being dragged aroundwhen you interact with the slider
             L.DomEvent.on(container, 'mousedown touchstart touchmove dblclick pointerdown', function(e) {
@@ -559,6 +595,7 @@
               elem.parentNode.removeChild(elem);
               setChart(map,layers);
               updateChoropleth(map);
+              $(stamp).html("<b>Year:</b> " + year);
             });
             return container;
           }

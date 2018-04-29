@@ -276,7 +276,7 @@
       .attr("y", d => yScale(parseFloat(d)) + topBottomPadding)
       .attr("width", chartInnerWidth / attributes.length)
       .attr("transform", "translate(1,-5)")
-      .style('fill', "blue");
+      .style('fill', "#54278f");
     };
 
     //separate the world into regions
@@ -473,7 +473,7 @@
 
     //function to create color scale generator
     function makeColorScale(data){
-      const colorClasses = ["#edf8e9", "#bae4b3","#74c476","#31a354","#006d2c"];
+      const colorClasses = ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"];
       //create color scale generator
 
       var colorScale = d3.scaleQuantile().range(colorClasses);
@@ -542,7 +542,7 @@
       var copyWorld = JSON.parse(JSON.stringify(world));
 
       const indicatorList = {
-        t5A : "<option value='553'>Maternal mortality ratio per 100,000 live births</option> <option value='570'>% of births attended by skilled health personnel</option>",
+        t5A : "<option value='553'>Maternal mortality ratio per 100,000 births</option> <option value='570'>% of births attended by skilled health personnel</option>",
         t5B : "<option value='730'>Contraceptive use for married women 15-49</option><option value='761'>Adolescent birth rate, per 1,000 women</option><option value='762'>% of antenatal care coverage, at least one visit</option>"
       }
       //value of current target
@@ -592,7 +592,10 @@
       }  else if(!notEmpty || !isFinite(props.SeriesCode)){
         infoDiv.innerHTML = `<b>${props.NAME_LONG}</b><br/>No Data Available`;
       } else if (isFinite(props.SeriesCode)){
-        infoDiv.innerHTML = `<b>${props.NAME_LONG}<br/>${props.Series}:</b> ${props[year]}<br/><svg/>`;
+        let num;
+        console.log(0<props[year])
+        if(0<props[year]){ num = props[year]} else {num = "N/A"}
+        infoDiv.innerHTML = `<b>${props.NAME_LONG} - ${year}<br/>${props.Series}:</b> ${num}<br/><svg/>`;
         createChart(attributes);
       }
     };

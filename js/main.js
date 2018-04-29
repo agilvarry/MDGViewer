@@ -5,9 +5,6 @@
 //STYLING
 
 
-
-//change color of main map? or change colors in side bar
-//popup color different for current year
 //make sure side map can be larger if the screen is
 
 
@@ -16,7 +13,6 @@
 //refactor choropleth functions
 //recactor chart creations
 //general refactoring
-
 //may not need to copy regions or world?? deal with in functions
 //be rid of global variables when all is said and done, including possibly the indicators variables
 //make popup into scatterplot with regression line??
@@ -59,8 +55,8 @@
     Oceania: "Oceania",
     Eastern_Asia: "Eastern Asia",
     SouthEastern_Asia: "South-Eastern Asia"
-
   }
+
 
   //create leaflet map
   function createMap(error, countries, mdg){
@@ -155,10 +151,26 @@
 
     //function to create dynamic label
     function setLabel(props){
-      //label content
-      let labelAttribute = "<h1>" + props[year] +
-      "</h1><b>" + props['Country'] + "</b>";
+      //object for popup labels
+      const popSeries = {
+        553 : "Maternal Mortality rate per 100k",
+        570 : "Births with Health Professional",
+        730 : "Contraceptive use",
+        761 : "Adolecent Birth Rate per 1k",
+        762 : "Antenatal care coverage"
+      }
+      
 
+      if (props['SeriesCode'] == 570 || props['SeriesCode'] == 730 || props['SeriesCode'] == 762){
+        var labelAttribute = `<h1> ${props[year]}% </h1>${popSeries[props['SeriesCode']]}<br/>
+        <b>${props['Country']} </b>`;
+      } else {
+        var labelAttribute = `<h1> ${props[year]} </h1>${popSeries[props['SeriesCode']]}<br/>
+        <b>${props['Country']} </b>`;
+      }
+      //label content
+
+      console.log(props);
       //create info label div
       var infolabel = d3.select("body")
       .append("div")
@@ -540,6 +552,7 @@
     function indicators(mdg, world, regions, map, datasets){
       var copyRegions = JSON.parse(JSON.stringify(regions));
       var copyWorld = JSON.parse(JSON.stringify(world));
+
 
       const indicatorList = {
         t5A : "<option value='553'>Maternal mortality ratio per 100,000 births</option> <option value='570'>% of births attended by skilled health personnel</option>",

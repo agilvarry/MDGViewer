@@ -249,6 +249,7 @@ opacity: 0.9;
 
 .info svg{
   padding: 20px;
+  overflow: visible;
 
 }
 

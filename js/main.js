@@ -108,6 +108,7 @@
     setChart(myMap, datasets[indicator]);
     setInfo(myMap);
     indicators(mdg, copyWorld, copyRegions, myMap, datasets);
+    document.getElementsByTagName("html")[0].style.visibility = "visible";
   };
 
   function makeGroup(regions){

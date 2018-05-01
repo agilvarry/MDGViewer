@@ -5,17 +5,16 @@
 //STYLING
 
 
-//make sure side map can be larger if the screen is
+
 
 
 //write script
 
-//refactor choropleth functions
 //recactor chart creations
 //general refactoring
 //may not need to copy regions or world?? deal with in functions
 //be rid of global variables when all is said and done, including possibly the indicators variables
-//make popup into scatterplot with regression line??
+
 
 //self calling global function
 (function(){
@@ -36,11 +35,14 @@
   const titleInfo = {
     t5A : "Reduce Maternal Mortality Rates",
     t5B : "Access to Reproductive Healthcare",
+    t3A : "Promote Gender Equality",
     553 : "Maternal mortality ratio per 100,000 live births",
     730 : "Contraceptive use among married women 15-49 years",
     570 : "% of births attended by skilled health personnel",
     761 : "Adolescent birth rate, per 1,000 women",
-    762 : "% of antenatal care coverage, at least one visit"
+    762 : "% of antenatal care coverage, at least one visit",
+    722 : "Share of women in non-agricultural wage employment",
+    557 : "Percent of Seats held by women in national parliament"
   };
 
   const regionNames ={
@@ -157,31 +159,25 @@
         570 : "Births with Health Professional",
         730 : "Contraceptive use",
         761 : "Adolecent Birth Rate per 1k",
-        762 : "Antenatal care coverage"
+        762 : "Antenatal care coverage",
+        722 : "Share of employed women",
+        557 : "Percent women in national parliament"
       }
-      
 
-      if (props['SeriesCode'] == 570 || props['SeriesCode'] == 730 || props['SeriesCode'] == 762){
+      //add a % sign to popup if dataset calls for it
+      if (props['SeriesCode'] == 570 || props['SeriesCode'] == 730 || props['SeriesCode'] == 762 || props['SeriesCode'] == 722 || props['SeriesCode'] == 557){
         var labelAttribute = `<h1> ${props[year]}% </h1>${popSeries[props['SeriesCode']]}<br/>
         <b>${props['Country']} </b>`;
       } else {
         var labelAttribute = `<h1> ${props[year]} </h1>${popSeries[props['SeriesCode']]}<br/>
         <b>${props['Country']} </b>`;
       }
-      //label content
-
-      console.log(props);
       //create info label div
       var infolabel = d3.select("body")
       .append("div")
       .attr("class", "infolabel")
       .attr("id", "co" + props.Code + "_label")
       .html(labelAttribute);
-
-      //set country name to popup
-      // var countryName = infolabel.append("div")
-      // .attr("class", "labelname")
-      // .html(props.Country);
     };
 
     //function to initialize D3 bar chart in side panel
@@ -237,7 +233,7 @@
         .attr("value", d=>d[year])
         .attr("class", d =>  "bar " +"co"+ d.CountryCode)
         .attr("width", chartInnerWidth / filtered.length)
-        .style('fill', d => choropleth(d, colorScale))
+        .style('fill', d => barColors(d, colorScale))
         .on("mouseover", d => setLabel(d))
         .on("mouseout", (d) => d3.select(".infolabel").remove())
         .on("mousemove", moveLabel);
@@ -251,8 +247,9 @@
     //make popup content, want to change this so it's stationay in corner
     function createChart(attributes){
 
-      let max = d3.max(attributes, d=>d);
-      let min = d3.min(attributes, d=>d);
+      let max = d3.max(attributes, d=>parseFloat(d));
+      let min = d3.min(attributes, d=>parseFloat(d));
+
       var xScale = d3.scaleTime().range([0, width-40]).domain([1990, 2015]);
       let yScale = d3.scaleLinear().range([height,0]).domain([(min - (min/5)), max]);
       var xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(5);
@@ -299,7 +296,6 @@
       //loop through countries and group into regions object
       for (let country in countries){
         num +=1;
-        //  console.log(countries[country].properties.NAME_LONG)
         let setRegion = countries[country].properties.REGION_UN;
         newRegions[setRegion].push(countries[country]);
         newRegions["All"].push(countries[country]);
@@ -321,7 +317,7 @@
       return currentRegions;
     }
 
-    //update choropleth style
+    //update choropleth style in map
     function updateChoropleth(map, layers){
       let current = filterRegions(layers[region]);
       //create colorscale
@@ -340,33 +336,29 @@
       });
 
     };
-
-    function choropleth(props, colorScale){
+    //updating color scale for side bars
+    function barColors(props, colorScale){
       //make sure attribute value is a number
       let val = parseFloat(props[year]);
       //if attribute value exists, assign a color; otherwise assign gray
       if (typeof val == 'number' && !isNaN(val)){
         return colorScale(val);
       }
-      //this may be unecessary for bar charts alone
-      else {
-        return "#CCC";
-      };
     };
 
     //ceate the side map for selecting regions
     function sideMap(mapView, layers, geojson, datasets){
       const regionColors = {
-        Developed: ["#edf8e9", "#bae4b3","#74c476","#31a354","#006d2c"],
-        Latin_America_Caribbean: ["#ffffd4", "#fed98e", "#fe9929", "#d95f0e", "#993404"],
-        Northern_Africa: ["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"],
-        SubSaharan_Africa: ["#edf8e9", "#bae4b3", "#74c476", "#31a354", "#006d2c"],
-        Central_Asia: ["#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"],
-        Southern_Asia: ["#feebe2", "#fbb4b9", "#f768a1", "#c51b8a", "#7a0177"],
-        Western_Asia: ["#f1eef6", "#d7b5d8", "#df65b0", "#dd1c77", "#980043"],
-        Oceania: ["#f1eef6", "#d7b5d8", "#df65b0", "#dd1c77", "#980043"],
-        Eastern_Asia: ["#fef0d9", "#fdcc8a", "#fc8d59", "#e34a33", "#b30000"],
-        SouthEastern_Asia: ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#756bb1", "#54278f"]
+        Developed: "#458945",
+        Latin_America_Caribbean: "#D7CC5A",
+        Northern_Africa: "#FEE6A0",
+        SubSaharan_Africa: "#F2A405",
+        Central_Asia: "#B8CEB6",
+        Southern_Asia: "#DDA563",
+        Western_Asia: "#DC807D",
+        Oceania: "#3BAFAF",
+        Eastern_Asia: "#E6CBB3",
+        SouthEastern_Asia: "#F9DA06"
       };
 
       //map container
@@ -377,7 +369,7 @@
       .attr("height", height);
       //set projection
       const projection = d3.geoNaturalEarth1()
-      .center([0, 15])
+      .center([10, 15])
       .scale(height *0.38)
       .translate([width / 2, height / 2]);
 
@@ -391,7 +383,7 @@
       .append('path')
       .attr('d', path)
       .attr('class', d=>  d.properties.REGION_UN)
-      .style("fill", d => regionColors[d.properties.REGION_UN][2])
+      .style("fill", d => regionColors[d.properties.REGION_UN])
       .on("mousedown", d => zoom(d.properties.REGION_UN, mapView, layers, datasets));
       //button to zoom to all countries
       $('button').on('click',function(){
@@ -503,7 +495,6 @@
 
     function joinData(current, countries){
       //loop through current to assign each set of current attribute values to geojson region
-
       for (let i=0; i<current.length; i++){
         let currentCountry = current[i]; //the current country in the CVS
         let currentCode = currentCountry.CountryCode; //the code of the current country in the current dataset
@@ -553,16 +544,15 @@
       var copyRegions = JSON.parse(JSON.stringify(regions));
       var copyWorld = JSON.parse(JSON.stringify(world));
 
-
       const indicatorList = {
         t5A : "<option value='553'>Maternal mortality ratio per 100,000 births</option> <option value='570'>% of births attended by skilled health personnel</option>",
-        t5B : "<option value='730'>Contraceptive use for married women 15-49</option><option value='761'>Adolescent birth rate, per 1,000 women</option><option value='762'>% of antenatal care coverage, at least one visit</option>"
+        t5B : "<option value='730'>Contraceptive use for married women 15-49</option><option value='761'>Adolescent birth rate, per 1,000 women</option><option value='762'>% of antenatal care coverage, at least one visit</option>",
+        t3A : "<option value='722'>% of women in non-agricultural wage employment</option><option value='557'>% of Seats held by women in national parliament</option>"
       }
       //value of current target
       var target = $("#targets").val();
       //value of current indicator
       var indicator = $("#indicators").val()
-
 
       changeTitle(target, indicator);
 
@@ -597,7 +587,7 @@
           notEmpty = true;
         };
       };
-
+      //set up Div for popup
       var infoDiv = document.querySelector('.info');
 
       if(!props){
@@ -606,9 +596,12 @@
         infoDiv.innerHTML = `<b>${props.NAME_LONG}</b><br/>No Data Available`;
       } else if (isFinite(props.SeriesCode)){
         let num;
-        console.log(0<props[year])
         if(0<props[year]){ num = props[year]} else {num = "N/A"}
-        infoDiv.innerHTML = `<b>${props.NAME_LONG} - ${year}<br/>${props.Series}:</b> ${num}<br/><svg/>`;
+        if (props.SeriesCode == 553 || props.SeriesCode == 761 || num == "N/A"){
+          infoDiv.innerHTML = `<b>${props.NAME_LONG} - ${year}<br/>${props.Series}:</b> ${num}<br/><svg/>`;
+        }else{
+          infoDiv.innerHTML = `<b>${props.NAME_LONG} - ${year}<br/>${props.Series}:</b> ${num}%<br/><svg/>`;
+      }
         createChart(attributes);
       }
     };
@@ -645,7 +638,7 @@
         let stamp = L.DomUtil.create('div', 'timestamp-container');
         //create slider and buttons to progress time, add to container
         let slider = L.DomUtil.create("input", "range-slider");
-        $(stamp).html("<b>Year:</b> " + year);
+        $(stamp).html(`<b>Year:</b>   ${year}` );
         $(container).append(stamp).append(slider);
         //stop the map from being dragged aroundwhen you interact with the slider
         L.DomEvent.on(container, 'mousedown touchstart touchmove dblclick pointerdown', function(e) {

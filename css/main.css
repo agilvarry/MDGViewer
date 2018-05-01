@@ -130,8 +130,6 @@ main{
 }
 .tooltip .tooltiptext {
     visibility: hidden;
-    height: 180px;
-    width: 400px;
     color: #fff;
     background-color: #000;
     border: solid thin #fff;
@@ -142,6 +140,15 @@ main{
     z-index: 10;
     left: 100%;
     transition: 0.3s;
+}
+#targettext{
+  height: 200px;
+  width: 350px;
+
+}
+
+i{
+  z-index:0;
 }
 .tooltip:hover .tooltiptext {
     visibility: visible;

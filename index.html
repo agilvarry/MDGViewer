@@ -20,24 +20,25 @@
   <main>
     <div class="sidenav">
       <div class="selectors"><div>
-        <div class="tooltip"><label id="name-label" for="targets">Target</label>
+        <label id="target-label" for="targets">Target</label><div class="tooltip">
         <i id="icon" class="fas fa-question-circle"></i>
-          <span class="tooltiptext">The UN's 8 Millenium Development Goals are each broken up into "targets," which are further broken down into "indicators" used to track progress towards these goals. To demonstrate proof of concept for this map three of these targets and associated indicators have been provided. For more information please see the official UN Stats site linked in the title bar. </span>
+          <span id="targettext" class="tooltiptext">Each of the UN's 8 Millenium Development Goals are broken into "targets," which are further broken into "indicators" used to track progress towards these goals. To demonstrate proof of concept for this map three of these targets and their associated indicators have been provided. For more information about these datasets please visit the UN's Millenium Development Goals Indicators website linked in the title bar.</span>
         </div><br/>
         <select class="selector" name="targets" id="targets">
           <option value="t5A">Reduce Maternal Mortality Rates</option>
           <option value="t5B">Access to Reproductive Healthcare</option>
+          <option value="t3A">Promote Gender Equality</option>
         </select>
       </div>
       <div>
-        <label id="name-label" for="indicators">Indicator</label><br/>
+        <label id="indicator-label" for="indicators">Indicator</label><br/>
         <select class="selector "id="indicators" name="indicators">
           <option value="553">Maternal mortality per 100,000 births</option>
           <option value="570">% of births attended by skilled health personnel</option>
         </select>
       </div>
       </div>
-      <label id="name-label" for="regionSelector">Click region to zoom map</label>
+      <label id="name-label" for="regionSelector">Click region to filter map</label>
       <div id="region">
       <div id="regionSelector"></div>
       <button class="All" type="button">All Countries</button>

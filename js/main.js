@@ -571,15 +571,15 @@
       }
       info.addTo(map);
       //removed the popup (after it's been added) as soon as you move the mouse
-      map.on('mousemove', function(){
+      map.on('mousedown touchend', function(){
         updateInfo();
       });
       //updates infomation contained in popup div
       updateInfo();
-    }
+    };
     //controls click for country popups, open when clicked
     function onEachFeature(feature, layer) {
-      layer.on('mousedown', function(){
+      layer.on('mouseover touchstart', function(){
         updateInfo(layer.feature.properties, layer);
       });
     };

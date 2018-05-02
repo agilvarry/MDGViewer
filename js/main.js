@@ -571,7 +571,11 @@
       }
       info.addTo(map);
       //removed the popup (after it's been added) as soon as you move the mouse
+<<<<<<< HEAD
       map.on('mousedown touchend', function(){
+=======
+      map.on('mouseup touchend', function(){
+>>>>>>> ed64ba3217f2845222c827cbd8918bb753c9aaeb
         updateInfo();
       });
       //updates infomation contained in popup div
@@ -579,7 +583,11 @@
     };
     //controls click for country popups, open when clicked
     function onEachFeature(feature, layer) {
+<<<<<<< HEAD
       layer.on('mouseover touchstart', function(){
+=======
+      layer.on('mousedown touchstart', function(){
+>>>>>>> ed64ba3217f2845222c827cbd8918bb753c9aaeb
         updateInfo(layer.feature.properties, layer);
       });
     };

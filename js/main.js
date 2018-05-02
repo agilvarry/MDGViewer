@@ -547,7 +547,7 @@
       var infoDiv = document.querySelector('.info');
       //set popup info base on props
       if(!props){
-        infoDiv.innerHTML = 'Click on a country for more information';
+        infoDiv.innerHTML = 'Hold down on a country for more information';
       }  else if(!notEmpty || !isFinite(props.SeriesCode)){
         infoDiv.innerHTML = `<b>${props.NAME_LONG}</b><br/>No Data Available`;
       } else if (isFinite(props.SeriesCode)){
@@ -571,11 +571,8 @@
       }
       info.addTo(map);
       //removed the popup (after it's been added) as soon as you move the mouse
-<<<<<<< HEAD
-      map.on('mousedown touchend', function(){
-=======
+
       map.on('mouseup touchend', function(){
->>>>>>> ed64ba3217f2845222c827cbd8918bb753c9aaeb
         updateInfo();
       });
       //updates infomation contained in popup div
@@ -583,11 +580,8 @@
     };
     //controls click for country popups, open when clicked
     function onEachFeature(feature, layer) {
-<<<<<<< HEAD
-      layer.on('mouseover touchstart', function(){
-=======
+
       layer.on('mousedown touchstart', function(){
->>>>>>> ed64ba3217f2845222c827cbd8918bb753c9aaeb
         updateInfo(layer.feature.properties, layer);
       });
     };

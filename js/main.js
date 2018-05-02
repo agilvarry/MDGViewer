@@ -331,6 +331,7 @@
         Eastern_Asia: "#E6CBB3",
         SouthEastern_Asia: "#F9DA06"
       };
+
       //map container
       const map = d3.select("#regionSelector")
       .append("svg")
@@ -340,7 +341,7 @@
       //set projection
       const projection = d3.geoNaturalEarth1()
       .center([10, 15])
-      .scale(height *0.38)
+      .scale(width *0.22)
       .translate([width / 2, height / 2]);
       //create a path to draw the geometry and set the projection
       const path = d3.geoPath()

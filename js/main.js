@@ -93,6 +93,7 @@
     indicators(mdg, copyWorld, copyRegions, myMap, datasets);
     //makes make visible after everything is loaded
     document.getElementsByTagName("html")[0].style.visibility = "visible";
+    $('select').css("max-width", width);
   };
   //make geojson objects for leaflet and group them
   function makeGroup(regions){

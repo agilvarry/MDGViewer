@@ -30,7 +30,7 @@
     All: "All UN Nations",
     Developed: '"Developed" Countries',
     Latin_America_Caribbean: "Latin America and the Caribbean",
-    Northern_Africa: "Northern Afirca",
+    Northern_Africa: "Northern Africa",
     SubSaharan_Africa: "Sub-Saharan Africa",
     Central_Asia: "Caucasus and Central Asia",
     Southern_Asia: "Southern Asia",

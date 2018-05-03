@@ -12,16 +12,21 @@
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
+
+
   <nav id="navbar">
     <a id="link" href="https://agilvarry.github.io">Alex Gilvarry</a>
-    <div><strong class="title" id="CurrentTarget"></strong> : <span class="title" id="CurrentIndicator"></span></div>
+    <div id="title"><strong class="title" id="CurrentTarget"></strong> : <span class="title" id="CurrentIndicator"></span></div>
   <a  href="http://mdgs.un.org/unsd/mdg/Host.aspx?Content=Indicators/About.htm">UN Millenium Development Goals</a>
   </nav>
-
+  <div id="warning-message">
+      This app is only viewable in landscape mode<br/>
+      Please rotate your device and reload this page.
+  </div>
   <main>
     <div class="sidenav">
       <div class="selectors"><div>
-        <label id="target-label" for="targets">Target</label><div class="tooltip">
+        <label id="target-label" class="datalabel" for="targets">Target</label><div class="tooltip">
         <i id="icon" class="fas fa-question-circle"></i>
           <span id="targettext" class="tooltiptext">Each of the UN's 8 Millenium Development Goals are broken into "targets," which are further broken into "indicators" used to track progress towards these goals. To demonstrate proof of concept for this map three of these targets and their associated indicators have been provided. For more information about these datasets please visit the UN's Millenium Development Goals Indicators website linked in the title bar.</span>
         </div><br/>
@@ -32,7 +37,7 @@
         </select>
       </div>
       <div>
-        <label id="indicator-label" for="indicators">Indicator</label><br/>
+        <label id="indicator-label" class="datalabel" for="indicators">Indicator</label><br/>
         <select class="selector "id="indicators" name="indicators">
           <option value="553">Maternal mortality per 100,000 births</option>
           <option value="570">% of births attended by skilled health personnel</option>
@@ -49,6 +54,8 @@
     </div>
     <div id="map"></div>
   </main>
+
+
 
 
   <script src="js/vendor/modernizr-3.5.0.min.js"></script>

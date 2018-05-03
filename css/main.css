@@ -96,6 +96,24 @@ textarea {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
+   #warning-message { display: none; }
+      @media only screen and (orientation:portrait){
+        main, nav{ visibility: hidden; }
+          #warning-message { display:block; }
+      }
+      @media only screen and (orientation:landscape){
+          #warning-message { display:none; }
+      }
+      /* @media only screen */
+      @media only screen and (max-height: 425px){
+        .datalabel, #regionChart, #title, .tooltip{
+          visibility: hidden;
+          display: none;
+        }
+
+      }
+
+
 html,body{
   width: 100%;
   height: 100%;

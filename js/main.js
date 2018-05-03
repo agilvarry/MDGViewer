@@ -356,7 +356,7 @@
       .style("fill", d => regionColors[d.properties.REGION_UN])
       .on("mousedown", d => zoom(d.properties.REGION_UN, mapView, layers, datasets));
       //button to zoom to all countries
-      $('button').on('click',function(){
+      $('.All').on('click',function(){
         zoom(this.className, mapView, layers, datasets) ;
       });
     };
@@ -595,8 +595,12 @@
         let stamp = L.DomUtil.create('div', 'timestamp-container');
         //create slider and buttons to progress time, add to container
         let slider = L.DomUtil.create("input", "range-slider");
+        let forward = L.DomUtil.create("button", "skip");
+        let back = L.DomUtil.create("button","skip");
         $(stamp).html(`<b>Year:</b>   ${year}` );
-        $(container).append(stamp).append(slider);
+        $(forward).text("Forward");
+        $(back).text("Back");
+        $(container).append(stamp).append(back).append(forward);
         //stop the map from being dragged aroundwhen you interact with the slider
         L.DomEvent.on(container, 'mousedown touchstart touchmove dblclick pointerdown', function(e) {
           L.DomEvent.stopPropagation(e);
@@ -613,6 +617,30 @@
           setChart(map,datasets[indicator]);
           updateChoropleth(map, datasets[indicator]);
           $(stamp).html("<b>Year:</b> " + year);
+        });
+        $(forward).on("click", function(){
+             year++
+             //cycle index around if we click forward at the edge of timetamp
+             year = year > 2015 ? 1990 : year;
+           $('.range-slider').val(year);
+           let indicator = $("#indicators").val();
+           var elem = document.querySelector('.chart');
+           elem.parentNode.removeChild(elem);
+           setChart(map,datasets[indicator]);
+           updateChoropleth(map, datasets[indicator]);
+           $(stamp).html("<b>Year:</b> " + year);
+        });
+        $(back).on("click", function(){
+           year--;
+              //cycle index around if we click backward at the edge of timetamp
+             year = year < 1990 ? 2015 : year;
+           $(slider).val(year);
+           let indicator = $("#indicators").val();
+           var elem = document.querySelector('.chart');
+           elem.parentNode.removeChild(elem);
+           setChart(map,datasets[indicator]);
+           updateChoropleth(map, datasets[indicator]);
+           $(stamp).html("<b>Year:</b> " + year);
         });
         return container;
       }

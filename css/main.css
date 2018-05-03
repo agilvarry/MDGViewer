@@ -141,10 +141,9 @@ main{
   height: 100%;
   z-index:0;
 }
-#mobile{
-  visibility: hidden;
-  display: none;
-}
+/* .butts{
+  display: inline;
+} */
 .tooltip {
     position: relative;
     display: inline-block;
@@ -184,7 +183,7 @@ i{
   font-size: 0.9em;
   margin-left: 3px;
 }
-button{
+.All{
   display: block;
   width: 100%;
   padding: 0;
@@ -203,6 +202,7 @@ button{
   box-shadow: none;
   border-radius: 5px;
   opacity: 0.9;
+  display: block;
 }
 
 .infolabel h1 {

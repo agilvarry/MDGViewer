@@ -106,7 +106,7 @@ textarea {
       }
       /* @media only screen */
       @media only screen and (max-height: 425px){
-        .datalabel, #regionChart, #title, .tooltip{
+        .datalabel, #regionChart, #title, .tooltip, .info{
           visibility: hidden;
           display: none;
         }

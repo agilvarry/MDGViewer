@@ -655,16 +655,18 @@ function start(){
     .await(createMap);
   };
 
-
+  //handles portrait vs landscap
   $(document).ready(function(){
     let portrait = false;
+    // only loads the app when in landscape mode
   if(window.innerHeight < window.innerWidth){
     portrait = true;
       start();
   } else{
+    //alters to change to landscape on page load
     alert("This app is only available in landscape mode, please rotate your device.");
   }
-
+  //load page on change to landscape if first instance of landscape
     window.onresize = function(){
       if (!portrait){
         portrait=true;

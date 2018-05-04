@@ -1,5 +1,5 @@
 //self calling global function
-(function(){
+function start(){
   //these two global variables are actually bad practice. I should revisit this program and refactor it to get rid of them
   var year = 1990;
   var region = "All";
@@ -653,4 +653,22 @@
     .defer(d3.json, "doc/MDGCountries.topojson") //Afria spatial data
     .defer(d3.csv, "doc/MDG.csv") //master data
     .await(createMap);
-  })();
+  };
+
+
+  $(document).ready(function(){
+    let portrait = false;
+  if(window.innerHeight < window.innerWidth){
+    portrait = true;
+      start();
+  } else{
+    alert("This app is only available in landscape mode, please rotate your device.");
+  }
+
+    window.onresize = function(){
+      if (!portrait){
+        portrait=true;
+      start();
+    }
+  }
+});

@@ -216,8 +216,8 @@ function start(){
         .attr("class", d =>  "bar " +"co"+ d.CountryCode)
         .attr("width", chartInnerWidth / filtered.length)
         .style('fill', d => barColors(d, colorScale))
-        .on("mouseover", d => setLabel(d))
-        .on("mouseout", (d) => d3.select(".infolabel").remove())
+        .on("mouseover touchstart", d => setLabel(d))
+        .on("mouseout touchend", (d) => d3.select(".infolabel").remove())
         .on("mousemove", moveLabel);
         //set y axis
         d3.selectAll("g.axis")

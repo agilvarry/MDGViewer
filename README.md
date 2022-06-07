@@ -1,7 +1,11 @@
-# MDG Viewer
+# Millennium Development Goals Indicators
 
-The MDG View is an app I made in grad school for visualizing the UN Millennium Development Goals
-
-It uses Leaflet.js and D3.js for to visualize data in a map and bar chart.
+This web app visualises data for the "Millennium Development Goals Indicators" which the UN established in September 2000 to set "a vision for the future: a world with less poverty, hunger and disease, greater survival prospects for mothers and their infants, better educated children, equal opportunities for women, and a healthier environment; a world in which developed and developing countries worked in partnership for the betterment of all."
 
 It is viewable at: https://agilvarry.github.io/MDGViewer/
+
+# Dependencies
+
+* [D3.js](https://d3js.org/) - a JavaScript library for manipulating documents based on data. 
+* [Leaflet.js](https://leafletjs.com/) - a library for mobile-friendly interactive maps
+
